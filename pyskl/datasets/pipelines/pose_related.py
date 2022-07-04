@@ -42,6 +42,8 @@ class PoseDecode:
         if 'keypoint' in results:
             results['keypoint'] = self._load_kp(results['keypoint'], frame_inds)
 
+        if 'angle' in results:
+            results['angle']    = self._load_kp(results['angle'],  frame_inds)
         return results
 
     def __repr__(self):
@@ -62,6 +64,16 @@ class PreNormalize2D:
         results['keypoint'][..., 1] = (results['keypoint'][..., 1] - (h / 2)) / (h / 2)
         return results
 
+from pyskl.utils.kinematic import compute_joint_angle
+@PIPELINES.register_module()
+class NormalizeJointAngle:
+    def __call__(self, results):
+        # print(results['keypoint'].shape, results['angle'].shape )
+        # ang = compute_joint_angle(results['keypoint'])
+        # ang = ang / np.pi - 1.0
+        results['angle'] = (results['angle']/np.pi) - 0.5 
+        # results['angle'] = ang[...,None]
+        return results
 
 @PIPELINES.register_module()
 class RandomRot:
@@ -391,10 +403,11 @@ class PadTo:
 class FormatGCNInput:
     """Format final skeleton shape to the given input_format. """
 
-    def __init__(self, num_person=2, mode='zero'):
+    def __init__(self, num_person=2, mode='zero', key='keypoint'):
         self.num_person = num_person
         assert mode in ['zero', 'loop']
         self.mode = mode
+        self.key  = key
 
     def __call__(self, results):
         """Performs the FormatShape formatting.
@@ -403,8 +416,8 @@ class FormatGCNInput:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        keypoint = results['keypoint']
-        if 'keypoint_score' in results:
+        keypoint = results[self.key]
+        if 'keypoint_score' in results and self.key == "keypoint":
             keypoint = np.concatenate((keypoint, results['keypoint_score'][..., None]), axis=-1)
 
         # M T V C
@@ -423,7 +436,7 @@ class FormatGCNInput:
         nc = results.get('num_clips', 1)
         assert T % nc == 0
         keypoint = keypoint.reshape((M, nc, T // nc, V, C)).transpose(1, 0, 2, 3, 4)
-        results['keypoint'] = np.ascontiguousarray(keypoint)
+        results[self.key] = np.ascontiguousarray(keypoint)
         return results
 
     def __repr__(self):

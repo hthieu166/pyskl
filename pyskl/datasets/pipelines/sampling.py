@@ -152,7 +152,7 @@ class UniformSampleFrames:
         inds = np.mod(inds, num_frames)
         start_index = results['start_index']
         inds = inds + start_index
-
+        
         if 'keypoint' in results:
             kp = results['keypoint']
             assert num_frames == kp.shape[1]

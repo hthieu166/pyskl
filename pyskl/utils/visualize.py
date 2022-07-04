@@ -7,7 +7,7 @@ import moviepy.editor as mpy
 import numpy as np
 from mmcv import load
 from tqdm import tqdm
-
+from pyskl.utils import joint_angle
 
 class Vis3DPose:
 
@@ -119,6 +119,12 @@ def Vis2DPose(item, thre=0.2, out_shape=(540, 960), layout='coco', fps=24, video
             (5, 7, 'ru'), (6, 8, 'lu'), (7, 9, 'ru'), (8, 10, 'lu'), (5, 11, 't'), (6, 12, 't'),
             (11, 13, 'ld'), (12, 14, 'rd'), (13, 15, 'ld'), (14, 16, 'rd')
         ]
+        
+        angles = [
+        (16,14,12), (14,12,6), (12,6,8), (6,8,10), 
+        (15,13,11), (13,11,5), (11,5,7), (5,7,9)
+        ]
+
     color_map = {
         'ru': ((0, 0x96, 0xc7), (0x3, 0x4, 0x5e)),
         'rd': ((0xca, 0xf0, 0xf8), (0x48, 0xca, 0xe4)),
@@ -140,4 +146,19 @@ def Vis2DPose(item, thre=0.2, out_shape=(540, 960), layout='coco', fps=24, video
                     color = [x + (y - x) * (conf - thre) / 0.8 for x, y in zip(co_tup[0], co_tup[1])]
                     color = tuple([int(x) for x in color])
                     frames[i] = cv2.line(frames[i], (j1x, j1y), (j2x, j2y), color, thickness=2)
+            
+            for a in angles:
+                j0, j1, j2 = a
+                conf = min(ske[j0][2], ske[j1][2], ske[j2][2])
+                if conf > thre:
+                    ang = joint_angle(ske[...,:2], j0, j1, j2)
+                    frames[i] = cv2.putText(
+                        img = frames[i],
+                        text = "%.00f" % (ang * 360.0/ (2*np.pi)),
+                        org = (int(ske[j1][0]), int(ske[j1][1])),
+                        fontFace = cv2.FONT_HERSHEY_DUPLEX,
+                        fontScale = 0.5,
+                        color = (0,0,0),
+                        thickness = 1
+                    )
     return mpy.ImageSequenceClip(frames, fps=fps)

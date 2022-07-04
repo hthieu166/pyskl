@@ -8,11 +8,11 @@ model = dict(
         graph_cfg=dict(layout='coco', mode='spatial')),
     cls_head=dict(type='GCNHead', num_classes=60, in_channels=256))
 
-dataset_type = 'PoseDataset'
+dataset_type = 'PoseAngleDataset'
 ann_file = '/mnt/data0-nfs/hthieu/data/pypkl_preprocessed/nturgbd/ntu60_hrnet.pkl'
 train_pipeline = [
     dict(type='PreNormalize2D'),
-    dict(type='GenSkeFeat', dataset='coco', feats=['jm']),
+    dict(type='GenSkeFeat', dataset='coco', feats=['b']),
     dict(type='UniformSample', clip_len=100),
     dict(type='PoseDecode'),
     dict(type='FormatGCNInput', num_person=2),
@@ -21,7 +21,7 @@ train_pipeline = [
 ]
 val_pipeline = [
     dict(type='PreNormalize2D'),
-    dict(type='GenSkeFeat', dataset='coco', feats=['jm']),
+    dict(type='GenSkeFeat', dataset='coco', feats=['b']),
     dict(type='UniformSample', clip_len=100, num_clips=1, test_mode=True),
     dict(type='PoseDecode'),
     dict(type='FormatGCNInput', num_person=2),
@@ -30,7 +30,7 @@ val_pipeline = [
 ]
 test_pipeline = [
     dict(type='PreNormalize2D'),
-    dict(type='GenSkeFeat', dataset='coco', feats=['jm']),
+    dict(type='GenSkeFeat', dataset='coco', feats=['b']),
     dict(type='UniformSample', clip_len=100, num_clips=10, test_mode=True),
     dict(type='PoseDecode'),
     dict(type='FormatGCNInput', num_person=2),
@@ -60,4 +60,4 @@ log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
 
 # runtime settings
 log_level = 'INFO'
-work_dir = './work_dirs/stgcn++/stgcn++_ntu60_xsub_hrnet/jm'
+work_dir = './work_dirs/stgcn++/stgcn++_ntu60_xsub_hrnet/b'

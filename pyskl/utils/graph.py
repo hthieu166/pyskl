@@ -74,7 +74,7 @@ class Graph:
         self.layout = layout
         self.mode = mode
 
-        assert layout in ['openpose', 'nturgb+d', 'coco']
+        assert layout in ['openpose', 'nturgb+d', 'coco', 'kinematic']
 
         self.get_layout(layout)
         self.hop_dis = get_hop_distance(self.num_node, self.inward, max_hop)
@@ -112,6 +112,13 @@ class Graph:
                 (1, 0), (3, 1), (2, 0), (4, 2)
             ]
             self.center = 0
+        elif layout == 'kinematic':
+            self.num_node = 8
+            self.inward = [
+                (0, 1), (1, 2), (2, 3), 
+                (4, 5), (5, 6), (6, 7),
+                (0, 4), (1, 5), (2, 6), (3,7)
+            ]
         else:
             raise ValueError(f'Do Not Exist This Layout: {layout}')
         self.self_link = [(i, i) for i in range(self.num_node)]

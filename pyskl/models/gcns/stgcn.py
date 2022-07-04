@@ -70,7 +70,7 @@ class STGCN(nn.Module):
                  pretrained=None,
                  **kwargs):
         super().__init__()
-
+        
         self.graph = Graph(**graph_cfg)
         A = torch.tensor(self.graph.A, dtype=torch.float32, requires_grad=False)
         self.data_bn_type = data_bn_type

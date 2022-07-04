@@ -184,6 +184,7 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
                 DDP, it means the batch size on each GPU), which is used for
                 averaging the logs.
         """
+        # import ipdb; ipdb.set_trace()
         losses = self(**data_batch, return_loss=True)
 
         loss, log_vars = self._parse_losses(losses)

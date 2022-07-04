@@ -1,41 +1,48 @@
 model = dict(
-    type='RecognizerGCN',
+    type='RecognizerGCNKinematic',
     backbone=dict(
         type='STGCN',
+        in_channels = 1,
         gcn_adaptive='init',
         gcn_with_res=True,
         tcn_type='mstcn',
-        graph_cfg=dict(layout='coco', mode='spatial')),
+        graph_cfg=dict(layout='kinematic', mode='spatial')),
     cls_head=dict(type='GCNHead', num_classes=60, in_channels=256))
 
 dataset_type = 'PoseDataset'
 ann_file = '/mnt/data0-nfs/hthieu/data/pypkl_preprocessed/nturgbd/ntu60_hrnet.pkl'
 train_pipeline = [
     dict(type='PreNormalize2D'),
-    dict(type='GenSkeFeat', dataset='coco', feats=['jm']),
+    dict(type='NormalizeJointAngle'),
+    dict(type='GenSkeFeat', dataset='coco', feats=['b']),
     dict(type='UniformSample', clip_len=100),
     dict(type='PoseDecode'),
-    dict(type='FormatGCNInput', num_person=2),
-    dict(type='Collect', keys=['keypoint', 'label'], meta_keys=[]),
-    dict(type='ToTensor', keys=['keypoint'])
+    dict(type='FormatGCNInput', num_person=2, key = 'angle'),
+    dict(type='FormatGCNInput', num_person=2, key = 'keypoint'),
+    dict(type='Collect', keys=['keypoint','angle', 'label'], meta_keys=[]),
+    dict(type='ToTensor', keys=['angle', 'keypoint'])
 ]
+
 val_pipeline = [
     dict(type='PreNormalize2D'),
-    dict(type='GenSkeFeat', dataset='coco', feats=['jm']),
+    # dict(type='NormalizeJointAngle'),
+    dict(type='GenSkeFeat', dataset='coco', feats=['b']),
     dict(type='UniformSample', clip_len=100, num_clips=1, test_mode=True),
     dict(type='PoseDecode'),
-    dict(type='FormatGCNInput', num_person=2),
-    dict(type='Collect', keys=['keypoint', 'label'], meta_keys=[]),
-    dict(type='ToTensor', keys=['keypoint'])
+    dict(type='FormatGCNInput', num_person=2, key = 'angle'),
+    dict(type='Collect', keys=['keypoint', 'angle', 'label'], meta_keys=[]),    
+    dict(type='ToTensor', keys=['angle'])
 ]
+
 test_pipeline = [
     dict(type='PreNormalize2D'),
-    dict(type='GenSkeFeat', dataset='coco', feats=['jm']),
+    dict(type='NormalizeJointAngle'),
+    dict(type='GenSkeFeat', dataset='coco', feats=['b']),
     dict(type='UniformSample', clip_len=100, num_clips=10, test_mode=True),
     dict(type='PoseDecode'),
     dict(type='FormatGCNInput', num_person=2),
-    dict(type='Collect', keys=['keypoint', 'label'], meta_keys=[]),
-    dict(type='ToTensor', keys=['keypoint'])
+    dict(type='Collect', keys=['keypoint', 'angle', 'label'], meta_keys=[]),
+    dict(type='ToTensor', keys=['angle', 'keypoint'])
 ]
 data = dict(
     videos_per_gpu=16,
@@ -60,4 +67,4 @@ log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
 
 # runtime settings
 log_level = 'INFO'
-work_dir = './work_dirs/stgcn++/stgcn++_ntu60_xsub_hrnet/jm'
+work_dir = './work_dirs/k_stgcn++/joint_angle_stgcn++_ntu60_xsub_hrnet/b'
