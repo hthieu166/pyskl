@@ -44,6 +44,9 @@ class PoseDecode:
 
         if 'angle' in results:
             results['angle']    = self._load_kp(results['angle'],  frame_inds)
+
+        if 'kinematic' in results:
+            results['kinematic'] = self._load_kp(results['kinematic'], frame_inds)
         return results
 
     def __repr__(self):
@@ -64,15 +67,17 @@ class PreNormalize2D:
         results['keypoint'][..., 1] = (results['keypoint'][..., 1] - (h / 2)) / (h / 2)
         return results
 
-from pyskl.utils.kinematic import compute_joint_angle
+@PIPELINES.register_module()
+class Debug:
+    def __call__(self,results):
+        print(results.keys())
+        print(results['kinematic'].shape)
+        return results
+
 @PIPELINES.register_module()
 class NormalizeJointAngle:
     def __call__(self, results):
-        # print(results['keypoint'].shape, results['angle'].shape )
-        # ang = compute_joint_angle(results['keypoint'])
-        # ang = ang / np.pi - 1.0
         results['angle'] = (results['angle']/np.pi) - 0.5 
-        # results['angle'] = ang[...,None]
         return results
 
 @PIPELINES.register_module()
@@ -376,6 +381,21 @@ class GenSkeFeat:
             results['keypoint'] = np.concatenate([keypoint, keypoint_score[..., None]], -1)
         return self.ops(results)
 
+@PIPELINES.register_module()
+class GenSkeKinematicFeat:
+    def __init__(self, dataset='nturgb+d', feats='a', axis=-1):
+        self.dataset = dataset
+        self.feats = feats
+        self.axis = axis
+        ops = []
+        if 'b' in feats or 'bm' in feats:
+            ops.append(JointToBone(dataset=dataset, target='b'))
+        ops.append(Rename({'angle': 'a'}))
+        ops.append(MergeSkeFeat(feat_list=feats, axis=axis, target='kinematic'))
+        self.ops = Compose(ops)
+    
+    def __call__(self, results):
+        return self.ops(results)
 
 @PIPELINES.register_module()
 class PadTo:

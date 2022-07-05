@@ -1,41 +1,48 @@
 model = dict(
-    type='RecognizerGCN',
+    type='RecognizerGCNKinematic',
     backbone=dict(
         type='STGCN',
+        in_channels = 1,
         gcn_adaptive='init',
         gcn_with_res=True,
         tcn_type='mstcn',
-        graph_cfg=dict(layout='nturgb+d', mode='spatial')),
+        graph_cfg=dict(layout='kinematic_3d', mode='spatial')),
     cls_head=dict(type='GCNHead', num_classes=60, in_channels=256))
 
 dataset_type = 'PoseDataset'
 ann_file = '/mnt/data0-nfs/hthieu/data/pypkl_preprocessed/nturgbd/ntu60_3danno.pkl'
 train_pipeline = [
     dict(type='PreNormalize3D'),
-    dict(type='GenSkeFeat', dataset='nturgb+d', feats=['j']),
+    dict(type='NormalizeJointAngle'),
+    dict(type='GenSkeKinematicFeat', dataset='nturgb+d', feats=['a']),
     dict(type='UniformSample', clip_len=100),
     dict(type='PoseDecode'),
-    dict(type='FormatGCNInput', num_person=2),
-    dict(type='Collect', keys=['keypoint', 'label'], meta_keys=[]),
-    dict(type='ToTensor', keys=['keypoint'])
+    dict(type='FormatGCNInput', num_person=2, key='kinematic'),
+    dict(type='FormatGCNInput', num_person=2, key='keypoint'),
+    dict(type='Collect', keys=['keypoint', 'kinematic', 'label'], meta_keys=[]),
+    dict(type='ToTensor', keys=['kinematic', 'keypoint'])
 ]
 val_pipeline = [
     dict(type='PreNormalize3D'),
-    dict(type='GenSkeFeat', dataset='nturgb+d', feats=['j']),
+    dict(type='NormalizeJointAngle'),
+    dict(type='GenSkeKinematicFeat', dataset='nturgb+d', feats=['a']),
     dict(type='UniformSample', clip_len=100, num_clips=1, test_mode=True),
     dict(type='PoseDecode'),
-    dict(type='FormatGCNInput', num_person=2),
-    dict(type='Collect', keys=['keypoint', 'label'], meta_keys=[]),
-    dict(type='ToTensor', keys=['keypoint'])
+    dict(type='FormatGCNInput', num_person=2, key='kinematic'),
+    dict(type='FormatGCNInput', num_person=2, key='keypoint'),
+    dict(type='Collect', keys=['keypoint', 'kinematic', 'label'], meta_keys=[]),
+    dict(type='ToTensor', keys=['kinematic', 'keypoint'])
 ]
 test_pipeline = [
     dict(type='PreNormalize3D'),
-    dict(type='GenSkeFeat', dataset='nturgb+d', feats=['j']),
+    dict(type='NormalizeJointAngle'),
+    dict(type='GenSkeKinematicFeat', dataset='nturgb+d', feats=['a']),
     dict(type='UniformSample', clip_len=100, num_clips=10, test_mode=True),
     dict(type='PoseDecode'),
-    dict(type='FormatGCNInput', num_person=2),
-    dict(type='Collect', keys=['keypoint', 'label'], meta_keys=[]),
-    dict(type='ToTensor', keys=['keypoint'])
+    dict(type='FormatGCNInput', num_person=2, key='kinematic'),
+    dict(type='FormatGCNInput', num_person=2, key='keypoint'),
+    dict(type='Collect', keys=['keypoint', 'kinematic', 'label'], meta_keys=[]),
+    dict(type='ToTensor', keys=['kinematic', 'keypoint'])
 ]
 data = dict(
     videos_per_gpu=16,
@@ -54,10 +61,10 @@ optimizer_config = dict(grad_clip=None)
 # learning policy
 lr_config = dict(policy='CosineAnnealing', min_lr=0, by_epoch=False)
 total_epochs = 16
-checkpoint_config = dict(interval=4)
+checkpoint_config = dict(interval=1)
 evaluation = dict(interval=1, metrics=['top_k_accuracy'])
 log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
 
 # runtime settings
 log_level = 'INFO'
-work_dir = './work_dirs/stgcn++/stgcn++_ntu60_xsub_3dkp/j'
+work_dir = './work_dirs/k_stgcn++/k_stgcn++_ntu60_xsub_3dkp/a'

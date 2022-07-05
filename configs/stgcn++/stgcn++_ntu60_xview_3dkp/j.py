@@ -9,7 +9,7 @@ model = dict(
     cls_head=dict(type='GCNHead', num_classes=60, in_channels=256))
 
 dataset_type = 'PoseDataset'
-ann_file = 'data/nturgbd/ntu60_3danno.pkl'
+ann_file = '/mnt/data0-nfs/hthieu/data/pypkl_preprocessed/nturgbd/ntu60_3danno.pkl'
 train_pipeline = [
     dict(type='PreNormalize3D'),
     dict(type='GenSkeFeat', dataset='nturgb+d', feats=['j']),

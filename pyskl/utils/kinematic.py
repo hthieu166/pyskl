@@ -1,8 +1,17 @@
 import numpy as np
 
-JOINTS_8_ANGLES = [
+JOINTS_2D_10_ANGLES_COCO = [
     (16,14,12), (14,12,6), (12,6,8), (6,8,10), 
-    (15,13,11), (13,11,5), (11,5,7), (5,7,9)
+    (15,13,11), (13,11,5), (11,5,7), (5,7,9),
+    (6,0,4), (5,0,3),
+    ]
+
+JOINTS_3D_19_ANGLES_NTU = [
+    (19,18,17),(18,17,16),(17,16,0),  # right leg: 0 - 1 - 2
+    (15,14,13),(14,13,12),(13,12,0),  # left  leg: 3 - 4 - 5
+    (12,0,1)  ,(4,20,2),  (20,2,3),   # body     : 6 - 7 - 8
+    (20,8,9)  ,(8,9,10),  (9,10,11),(10,11,23),(23,11,24), # right arm: 9 - 10 - 11 - 12 - 13
+    (20,4,5)  ,(4,5,6),   (5,6,7),   (6,7,21), (21,7,22)   # left  arm:14 - 15 - 16 - 17 - 18
     ]
 
 def vector_angle(uo, vo):
@@ -28,11 +37,11 @@ def joint_angle(loc, j0, j1, j2):
     
     return(vector_angle(u, v))
 
-def compute_joint_angle(keypoint):
+def compute_joint_angle(keypoint, layout = JOINTS_2D_10_ANGLES_COCO):
     angle = []
     ns, nf, nj, nd = keypoint.shape
     keypoint = keypoint.reshape(ns*nf, nj, nd)
-    for j0,j1,j2 in JOINTS_8_ANGLES:
+    for j0,j1,j2 in layout:
         angle.append(joint_angle(keypoint, j0, j1, j2)[:,None])
     angle = np.concatenate(angle, axis=-1)
     angle = angle.reshape(ns, nf, -1)
