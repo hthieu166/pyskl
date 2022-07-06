@@ -51,7 +51,7 @@ if [ $TEST  = 1 ]
 then
     ## testing
     MKL_SERVICE_FORCE_INTEL=1 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES\
-    torchrun --nproc_per_node=$GPUS --master_port=$PORT \
-        $(dirname "$0")/test.py $CONFIG --launcher pytorch \
+    torchrun --nproc_per_node=$NUM_GPUS --master_port=$PORT \
+        $(dirname "$0")/test.py $CONFIG_FILE --launcher pytorch \
         # -C $CHECKPOINT
 fi

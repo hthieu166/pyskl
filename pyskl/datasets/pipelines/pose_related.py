@@ -5,7 +5,7 @@ from scipy.stats import mode as get_mode
 from ..builder import PIPELINES
 from .compose import Compose
 from .formatting import Rename
-
+from pyskl.utils.kinematic import *
 EPS = 1e-4
 
 
@@ -349,11 +349,42 @@ class MergeSkeFeat:
     def __call__(self, results):
         feats = []
         for name in self.feat_list:
-            feats.append(results.pop(name))
+            val = results.pop(name)
+            feats.append(val)
         feats = np.concatenate(feats, axis=self.axis)
         results[self.target] = feats
         return results
 
+@PIPELINES.register_module()
+class KinematicAngleBoneLength:
+    def __init__(self, layout, target='bl'):
+        self.target = target
+        if  layout  == 'kinematic':
+            self.layout = JOINTS_2D_10_ANGLES_COCO
+        elif layout == 'kinematic_3d':
+            self.layout = JOINTS_3D_19_ANGLES_NTU
+    
+    def __call__(self, results):
+        results[self.target] = compute_bone_length(
+            results['keypoint'], self.layout
+        )
+        # print(results['keypoint'].shape[1] == results[self.target].shape[1])
+        return results
+
+@PIPELINES.register_module()
+class KinematicAngle:
+    def __init__(self, layout, target='a'):
+        self.target = target
+        if  layout  == 'kinematic':
+            self.layout = JOINTS_2D_10_ANGLES_COCO
+        elif layout == 'kinematic_3d':
+            self.layout = JOINTS_3D_19_ANGLES_NTU
+    
+    def __call__(self, results):
+        results[self.target] = compute_joint_angle(
+            results['keypoint'], self.layout
+        )
+        return results
 
 @PIPELINES.register_module()
 class GenSkeFeat:
@@ -383,14 +414,16 @@ class GenSkeFeat:
 
 @PIPELINES.register_module()
 class GenSkeKinematicFeat:
-    def __init__(self, dataset='nturgb+d', feats='a', axis=-1):
+    def __init__(self, dataset='nturgb+d', layout='kinematic', feats='a', axis=-1):
         self.dataset = dataset
         self.feats = feats
         self.axis = axis
         ops = []
-        if 'b' in feats or 'bm' in feats:
-            ops.append(JointToBone(dataset=dataset, target='b'))
-        ops.append(Rename({'angle': 'a'}))
+        if 'a' in feats:
+            ops.append(KinematicAngle(layout=layout, target='a'))
+        if 'bl' in feats:
+            ops.append(KinematicAngleBoneLength(layout=layout, target='bl'))
+        
         ops.append(MergeSkeFeat(feat_list=feats, axis=axis, target='kinematic'))
         self.ops = Compose(ops)
     

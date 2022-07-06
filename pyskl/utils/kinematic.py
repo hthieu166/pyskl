@@ -37,13 +37,33 @@ def joint_angle(loc, j0, j1, j2):
     
     return(vector_angle(u, v))
 
+def compute_bone_length(keypoint, layout = JOINTS_2D_10_ANGLES_COCO):
+    ns, nf, nj, nd = keypoint.shape
+    keypoint   = keypoint.reshape(ns*nf, nj, nd)
+    bone_length= np.zeros((ns * nf, len(layout), 2))
+    
+    for i, (j0,j1,j2) in enumerate(layout):
+        bone_length[:, i, 0] = np.linalg.norm(keypoint[:,j0,:] - keypoint[:,j1,:])
+        bone_length[:, i, 1] = np.linalg.norm(keypoint[:,j2,:] - keypoint[:,j1,:])   
+    bone_length = bone_length.reshape(ns, nf, len(layout), -1)
+    return bone_length
+
 def compute_joint_angle(keypoint, layout = JOINTS_2D_10_ANGLES_COCO):
-    angle = []
     ns, nf, nj, nd = keypoint.shape
     keypoint = keypoint.reshape(ns*nf, nj, nd)
-    for j0,j1,j2 in layout:
-        angle.append(joint_angle(keypoint, j0, j1, j2)[:,None])
-    angle = np.concatenate(angle, axis=-1)
-    angle = angle.reshape(ns, nf, -1)
-    
+    angle    = np.zeros((ns*nf, len(layout), 1))
+    for i, (j0,j1,j2) in enumerate(layout):
+        angle[:,i,0] = joint_angle(keypoint, j0, j1, j2)
+    angle = angle.reshape(ns, nf, len(layout), -1)
     return angle
+
+# def compute_joint_angle(keypoint, layout = JOINTS_2D_10_ANGLES_COCO):
+#     angle = []
+#     ns, nf, nj, nd = keypoint.shape
+#     keypoint = keypoint.reshape(ns*nf, nj, nd)
+#     for j0,j1,j2 in layout:
+#         angle.append(joint_angle(keypoint, j0, j1, j2)[:,None])
+#     angle = np.concatenate(angle, axis=-1)
+#     angle = angle.reshape(ns, nf, -1)
+    
+#     return angle

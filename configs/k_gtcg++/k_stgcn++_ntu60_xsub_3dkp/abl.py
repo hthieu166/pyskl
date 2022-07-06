@@ -2,7 +2,7 @@ model = dict(
     type='RecognizerGCNKinematic',
     backbone=dict(
         type='STGCN',
-        in_channels = 1,
+        in_channels = 3,
         gcn_adaptive='init',
         gcn_with_res=True,
         tcn_type='mstcn',
@@ -14,7 +14,7 @@ ann_file = '/mnt/data0-nfs/hthieu/data/pypkl_preprocessed/nturgbd/ntu60_3danno.p
 train_pipeline = [
     dict(type='PreNormalize3D'),
     dict(type='NormalizeJointAngle'),
-    dict(type='GenSkeKinematicFeat', dataset='nturgb+d', feats=['a']),
+    dict(type='GenSkeKinematicFeat', dataset='nturgb+d', layout='kinematic_3d', feats=['a', 'bl']),
     dict(type='UniformSample', clip_len=100),
     dict(type='PoseDecode'),
     dict(type='FormatGCNInput', num_person=2, key='kinematic'),
@@ -25,7 +25,7 @@ train_pipeline = [
 val_pipeline = [
     dict(type='PreNormalize3D'),
     dict(type='NormalizeJointAngle'),
-    dict(type='GenSkeKinematicFeat', dataset='nturgb+d', feats=['a']),
+    dict(type='GenSkeKinematicFeat', dataset='nturgb+d', layout='kinematic_3d', feats=['a', 'bl']),
     dict(type='UniformSample', clip_len=100, num_clips=1, test_mode=True),
     dict(type='PoseDecode'),
     dict(type='FormatGCNInput', num_person=2, key='kinematic'),
@@ -36,7 +36,7 @@ val_pipeline = [
 test_pipeline = [
     dict(type='PreNormalize3D'),
     dict(type='NormalizeJointAngle'),
-    dict(type='GenSkeKinematicFeat', dataset='nturgb+d', feats=['a']),
+    dict(type='GenSkeKinematicFeat', dataset='nturgb+d', layout='kinematic_3d', feats=['a', 'bl']),
     dict(type='UniformSample', clip_len=100, num_clips=10, test_mode=True),
     dict(type='PoseDecode'),
     dict(type='FormatGCNInput', num_person=2, key='kinematic'),
@@ -67,4 +67,4 @@ log_config = dict(interval=100, hooks=[dict(type='TextLoggerHook')])
 
 # runtime settings
 log_level = 'INFO'
-work_dir = './work_dirs/k_stgcn++/k_stgcn++_ntu60_xsub_3dkp/a'
+work_dir = './work_dirs/k_stgcn++/k_stgcn++_ntu60_xsub_3dkp/abl'
