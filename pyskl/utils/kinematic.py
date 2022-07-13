@@ -1,3 +1,4 @@
+from ast import Return
 import numpy as np
 
 JOINTS_2D_10_ANGLES_COCO = [
@@ -48,7 +49,7 @@ def compute_bone_length(keypoint, layout = JOINTS_2D_10_ANGLES_COCO):
     bone_length = bone_length.reshape(ns, nf, len(layout), -1)
     return bone_length
 
-def compute_joint_angle(keypoint, layout = JOINTS_2D_10_ANGLES_COCO):
+def compute_joint_angle(keypoint, layout = JOINTS_2D_10_ANGLES_COCO, return_conf_score = False):
     ns, nf, nj, nd = keypoint.shape
     keypoint = keypoint.reshape(ns*nf, nj, nd)
     angle    = np.zeros((ns*nf, len(layout), 1))
@@ -57,6 +58,17 @@ def compute_joint_angle(keypoint, layout = JOINTS_2D_10_ANGLES_COCO):
     angle = angle.reshape(ns, nf, len(layout), -1)
     return angle
 
+def compute_joint_angle_3_axis(keypoint, layout = JOINTS_3D_19_ANGLES_NTU):
+    ns, nf, nj, nd = keypoint.shape
+    keypoint = keypoint.reshape(ns*nf, nj, nd)
+    angle    = np.zeros((ns*nf, len(layout), 3))
+    for i, (j0,j1,j2) in enumerate(layout):
+        angle[:,i,0] = joint_angle(keypoint[...,[0, 1]], j0, j1, j2)
+        angle[:,i,1] = joint_angle(keypoint[...,[0, 2]], j0, j1, j2)
+        angle[:,i,2] = joint_angle(keypoint[...,[1, 2]], j0, j1, j2)
+    angle = angle.reshape(ns, nf, len(layout), -1)
+    return angle
+    
 # def compute_joint_angle(keypoint, layout = JOINTS_2D_10_ANGLES_COCO):
 #     angle = []
 #     ns, nf, nj, nd = keypoint.shape

@@ -1,32 +1,25 @@
 import glob
 from pyskl.smp import *
-from pyskl.utils.kinematic import compute_joint_angle
+from pyskl.utils.kinematic import *
 from pyskl.utils.visualize import Vis3DPose, Vis2DPose
 from mmcv import load, dump
 import moviepy.editor as mpy
 import numpy as np
 import cv2
 
-edges = [
-        (0, 1, 'f'), (0, 2, 'f'), (1, 3, 'f'), (2, 4, 'f'), (0, 5, 't'), (0, 6, 't'),
-        (5, 7, 'ru'), (6, 8, 'lu'), (7, 9, 'ru'), (8, 10, 'lu'), (5, 11, 't'), (6, 12, 't'),
-        (11, 13, 'ld'), (12, 14, 'rd'), (13, 15, 'ld'), (14, 16, 'rd')
-        ]
-
-color_map = {
-    'ru': ((0, 0x96, 0xc7), (0x3, 0x4, 0x5e)),
-    'rd': ((0xca, 0xf0, 0xf8), (0x48, 0xca, 0xe4)),
-    'lu': ((0x9d, 0x2, 0x8), (0x3, 0x7, 0x1e)),
-    'ld': ((0xff, 0xba, 0x8), (0xe8, 0x5d, 0x4)),
-    't': ((0xee, 0x8b, 0x98), (0xd9, 0x4, 0x29)),
-    'f': ((0x8d, 0x99, 0xae), (0x2b, 0x2d, 0x42))}
-
+import pytorch3d
+from pytorch3d import transforms as T
+import torch
 def main():
     index = 0
-    annotations = load('ntu60_2d.pkl')
+    annotations = load('ntu60_3d.pkl')
     anno = annotations[index]
     
-    angle = compute_joint_angle(anno['keypoint'])
+    angle = compute_joint_angle_3_axis(anno['keypoint'])
+    est_angle = torch.Tensor(angle)
+    rot_magic = T.axis_angle_to_matrix(est_angle)
+    
+    import ipdb; ipdb.set_trace()
     # anno = annotations[index]
     # vid = Vis2DPose(anno, thre=0.2, out_shape=(540, 960), layout='coco', fps=12, video=None)
     # vid.ipython_display()

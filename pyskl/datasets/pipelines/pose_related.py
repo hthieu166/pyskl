@@ -368,7 +368,21 @@ class KinematicAngleBoneLength:
         results[self.target] = compute_bone_length(
             results['keypoint'], self.layout
         )
-        # print(results['keypoint'].shape[1] == results[self.target].shape[1])
+        return results
+
+@PIPELINES.register_module()
+class KinematicAngle3Axis:
+    def __init__(self, layout, target='a3a'):
+        self.target = target
+        if layout == 'kinematic_3d':
+            self.layout = JOINTS_3D_19_ANGLES_NTU
+        else:
+            raise NotImplementedError
+
+    def __call__(self, results):
+        results[self.target] = compute_joint_angle_3_axis(
+            results['keypoint'], self.layout
+        )
         return results
 
 @PIPELINES.register_module()
@@ -423,7 +437,9 @@ class GenSkeKinematicFeat:
             ops.append(KinematicAngle(layout=layout, target='a'))
         if 'bl' in feats:
             ops.append(KinematicAngleBoneLength(layout=layout, target='bl'))
-        
+        if 'a3a' in feats:
+            ops.append(KinematicAngle3Axis(layout=layout, target='a3a'))
+
         ops.append(MergeSkeFeat(feat_list=feats, axis=axis, target='kinematic'))
         self.ops = Compose(ops)
     
